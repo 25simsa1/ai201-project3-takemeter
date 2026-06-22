@@ -99,4 +99,12 @@ Failure analysis, after evaluation. I paste the fine-tuned model's misclassifica
 
 ## Hard annotation decisions
 
-I fill this in during Milestone 3 with at least three genuine judgment calls, each with what I decided and why. Empty for now until annotation starts.
+Four genuine judgment calls from annotating the r/nba sample. Each notes which two labels it sat between and what I decided.
+
+1. "The call he got, where he literally jumped left into the guy at his side, going away from the basket, felt like it was a Key and Peele sketch... Just.. call the game according to the rules." Sat between `reaction` and `analysis`. It describes a specific play to argue the foul call was wrong, so it is not pure emotion, which rules out `reaction`. But the evidence is one play described emotively rather than a structured argument, so it is not `analysis` either. Decided `hot_take`.
+
+2. "Everyone needs to get paid and owners dont want to pay $500M in luxury tax... J-dub on the Nets and Caruso is old... Castle blows his knee out... See Tatum's leg, MPJ/Gordon/Murray injuries... Dynasties are very difficult." Sat between `hot_take` and `analysis`. The claim (dynasties are hard to sustain) is backed by a stack of specific roster, injury, and CBA examples doing real work, not decoration. Decided `analysis`.
+
+3. "> dog Chet This insult seems so obvious in retrospect... maybe this gives more credence to the argument from oldheads that fundamental moves only seem obvious once they've already been invented." Sat between `analysis` and `hot_take`. It reads like reasoning, but the meta-point is an assertion with no verifiable evidence behind it. Decided `hot_take`.
+
+4. "Lol what is this post. Russell is one of the most athletic players ever, and so was Wilt. Both were olympic level athletes across a bunch of disciplines, Wilt benched more, had a higher vert..." Sat between `hot_take` and `analysis`. Despite the dismissive "lol" opener, it cites specific comparative evidence (vertical, bench, Olympic disciplines) to support the position. The evidence carries the claim, so decided `analysis`.

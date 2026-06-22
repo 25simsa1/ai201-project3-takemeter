@@ -1,5 +1,6 @@
 import scrape_reddit as sr
 import csv
+import json
 
 SAMPLE = [
     {"kind": "Listing", "data": {"children": [
@@ -91,3 +92,13 @@ def test_write_csv_roundtrip(tmp_path):
     with open(path, newline="", encoding="utf-8") as f:
         read = list(csv.DictReader(f))
     assert read[0]["text"] == "hi" and read[0]["source"] == "t1"
+
+
+def test_rows_from_files_reads_local_json(tmp_path):
+    p = tmp_path / "thread.json"
+    p.write_text(json.dumps(SAMPLE), encoding="utf-8")
+    rows = sr.rows_from_files([str(p)], min_chars=8, max_chars=1500)
+    texts = [r["text"] for r in rows]
+    assert "Top comment" in texts
+    assert "Nested reply" in texts
+    assert "[deleted]" not in texts

@@ -1,7 +1,13 @@
 import re
+import argparse
+import csv
+import time
+import requests
 
 LOW_VALUE = {"this", "lol", "same", "^", "^^this", "lmao", "facts", "deadass"}
 _WS = re.compile(r"\s+")
+
+USER_AGENT = "takemeter/0.1 (educational classifier project)"
 
 
 def extract_comments(listing_json):
@@ -58,3 +64,69 @@ def dedupe(comments):
         seen.add(key)
         out.append(c)
     return out
+
+
+def thread_url(ref):
+    if ref.startswith("http"):
+        m = re.search(r"/comments/([a-z0-9]+)", ref)
+        tid = m.group(1) if m else ref.rstrip("/").split("/")[-1]
+    else:
+        tid = ref
+    return f"https://www.reddit.com/comments/{tid}.json?limit=500&raw_json=1"
+
+
+def fetch_thread_json(ref, timeout=15):
+    resp = requests.get(
+        thread_url(ref), headers={"User-Agent": USER_AGENT}, timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def rows_from_threads(refs, min_chars, max_chars, sleep_s, fetch=fetch_thread_json):
+    rows = []
+    for ref in refs:
+        data = fetch(ref)
+        for c in extract_comments(data):
+            if is_valid_comment(c, min_chars, max_chars):
+                rows.append({
+                    "text": clean_comment(c["body"]),
+                    "score": c["score"],
+                    "source": ref,
+                })
+        if sleep_s:
+            time.sleep(sleep_s)
+    # dedupe on the cleaned text we just produced
+    seen, deduped = set(), []
+    for r in rows:
+        key = r["text"].lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(r)
+    return deduped
+
+
+def write_csv(rows, path, fields):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        writer.writeheader()
+        for r in rows:
+            writer.writerow({k: r.get(k, "") for k in fields})
+
+
+def main():
+    p = argparse.ArgumentParser(description="Scrape r/nba thread comments")
+    p.add_argument("threads", nargs="+", help="thread ids or full URLs")
+    p.add_argument("--out", default="data/raw_comments.csv")
+    p.add_argument("--min-chars", type=int, default=8)
+    p.add_argument("--max-chars", type=int, default=1500)
+    p.add_argument("--sleep", type=float, default=2.0)
+    args = p.parse_args()
+    rows = rows_from_threads(
+        args.threads, args.min_chars, args.max_chars, args.sleep)
+    write_csv(rows, args.out, ["text", "score", "source"])
+    print(f"Wrote {len(rows)} comments to {args.out}")
+
+
+if __name__ == "__main__":
+    main()

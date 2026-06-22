@@ -88,7 +88,7 @@ def main():
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         for r in rows:
-            w.writerow(r)
+            w.writerow({k: r.get(k, "") for k in fields})
     print(f"Wrote {len(rows)} pre-labeled rows to {args.out}")
 
 

@@ -32,7 +32,7 @@ def test_parse_label_unknown_returns_none():
 import csv
 
 
-class _FakeMessage:
+class _FakeChoice:
     def __init__(self, content): self.message = type("M", (), {"content": content})
 
 
@@ -40,7 +40,7 @@ class _FakeCompletions:
     def __init__(self, reply): self._reply = reply
     def create(self, **kwargs):
         assert kwargs["temperature"] == 0
-        return type("R", (), {"choices": [_FakeMessage(self._reply)]})
+        return type("R", (), {"choices": [_FakeChoice(self._reply)]})
 
 
 class FakeClient:

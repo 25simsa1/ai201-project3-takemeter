@@ -50,13 +50,6 @@ def test_is_valid_comment_length_and_lowvalue():
     assert not sr.is_valid_comment({"body": "x" * 2000, "author": "u"})
 
 
-def test_dedupe_keeps_first_case_insensitive():
-    rows = [
-        {"body": "Same Take"}, {"body": "same take"}, {"body": "Different"}]
-    out = sr.dedupe(rows)
-    assert [r["body"] for r in out] == ["Same Take", "Different"]
-
-
 def test_thread_url_from_id_and_url():
     assert sr.thread_url("abc123") == (
         "https://www.reddit.com/comments/abc123.json?limit=500&raw_json=1")
@@ -74,6 +67,21 @@ def test_rows_from_threads_uses_injected_fetch():
     assert "Nested reply" in texts
     assert "[deleted]" not in texts
     assert all(r["source"] == "t1" for r in rows)
+
+
+def test_rows_from_threads_dedupes_duplicate_bodies():
+    dup = [
+        {"kind": "Listing", "data": {"children": []}},
+        {"kind": "Listing", "data": {"children": [
+            {"kind": "t1", "data": {"body": "This is a duplicate comment", "score": 1, "id": "d1", "author": "u", "replies": ""}},
+            {"kind": "t1", "data": {"body": "this is a duplicate comment", "score": 2, "id": "d2", "author": "u", "replies": ""}},
+            {"kind": "t1", "data": {"body": "A distinct comment here", "score": 3, "id": "d3", "author": "u", "replies": ""}},
+        ]}},
+    ]
+    rows = sr.rows_from_threads(
+        ["t"], min_chars=8, max_chars=1500, sleep_s=0,
+        fetch=lambda ref, timeout=15: dup)
+    assert len(rows) == 2  # case-insensitive dedupe collapses the two duplicates
 
 
 def test_write_csv_roundtrip(tmp_path):

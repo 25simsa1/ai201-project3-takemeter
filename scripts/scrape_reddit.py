@@ -54,18 +54,6 @@ def is_valid_comment(comment, min_chars=8, max_chars=1500):
     return True
 
 
-def dedupe(comments):
-    seen = set()
-    out = []
-    for c in comments:
-        key = clean_comment(c.get("body", "")).lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append(c)
-    return out
-
-
 def thread_url(ref):
     if ref.startswith("http"):
         m = re.search(r"/comments/([a-z0-9]+)", ref)
